@@ -37,7 +37,7 @@ npm run reset-project       # Move starter code to app-example and create blank 
 
 ### Routes
 Currently, the app has a minimal structure:
-- **Root layout** (`app/_layout.tsx`): Basic Stack navigator using Expo Router
+- **Root layout** (`app/_layout.tsx`): Stack navigator wrapped with React Native Paper's PaperProvider for theming
 - **Home screen** (`app/index.tsx`): Placeholder screen with simple centered text
 
 ### Components
@@ -49,10 +49,10 @@ The `components/` directory does not currently exist. Previous template componen
 - `ui/collapsible.tsx` - Collapsible component
 - `ui/icon-symbol.tsx` - Platform-specific icon components
 
-### Hooks & Constants
-Not currently implemented. Reference implementations available in `app-example/`:
-- **Hooks**: `use-color-scheme.ts`, `use-theme-color.ts` for theming
-- **Constants**: `theme.ts` for color schemes and typography
+**Note**: Use React Native Paper components for UI development. See Theme System section below.
+
+### Constants
+- **Theme** (`constants/theme.ts`): Material Design 3 theme configuration with light and dark mode support
 
 ## Architecture & Best Practices
 
@@ -64,12 +64,42 @@ Not currently implemented. Reference implementations available in `app-example/`
   - Tab navigation with grouped routes in `app/(tabs)/`
   - Modal screens using `presentation: 'modal'` option
 
-### Theme System (Not Yet Implemented)
-When implementing theming, refer to `app-example/` for patterns:
-- Dual light/dark mode support using `@react-navigation/native` themes
-- Color schemes and fonts defined in `constants/theme.ts`
-- Custom hooks: `use-color-scheme.ts` and `use-theme-color.ts`
-- Platform-specific implementations (`.web.ts` extensions)
+### Theme System (React Native Paper + Material Design 3)
+The app uses **React Native Paper** with Material Design 3 for consistent UI components and theming:
+
+**Setup:**
+- `PaperProvider` wraps the app in `app/_layout.tsx`
+- Automatic light/dark mode switching based on system preferences
+- Theme configuration in `constants/theme.ts`
+
+**Available Themes:**
+- `lightTheme` - Material Design 3 light theme (extends `MD3LightTheme`)
+- `darkTheme` - Material Design 3 dark theme (extends `MD3DarkTheme`)
+- Custom color overrides can be added to each theme
+
+**Using the Theme in Components:**
+```typescript
+import { useTheme } from 'react-native-paper';
+
+function MyComponent() {
+  const theme = useTheme();
+  // Access colors: theme.colors.primary, theme.colors.background, etc.
+}
+```
+
+**Available Material Design 3 Components:**
+- Layout: `Surface`, `Card`, `Divider`, `List`
+- Inputs: `Button`, `TextInput`, `Checkbox`, `RadioButton`, `Switch`, `Chip`
+- Navigation: `Appbar`, `BottomNavigation`, `Drawer`, `TabBar`
+- Feedback: `Dialog`, `Snackbar`, `Banner`, `ProgressBar`, `ActivityIndicator`
+- Display: `Avatar`, `Badge`, `DataTable`, `FAB`, `Icon`, `IconButton`, `Menu`
+- Typography: `Text` (with variants like `displayLarge`, `headlineMedium`, `bodySmall`, etc.)
+
+**Best Practices:**
+- Use Paper components instead of plain React Native components for consistent theming
+- Access theme colors via `useTheme()` hook in custom components
+- Customize theme colors in `constants/theme.ts` to match app branding
+- Paper components automatically adapt to light/dark mode
 
 ### Component Patterns
 - **Path aliases**: Use `@/` to import from root (e.g., `@/components/my-component`)
@@ -97,6 +127,7 @@ When implementing theming, refer to `app-example/` for patterns:
 
 ### Key Dependencies
 - **Core**: React 19.1.0, React Native 0.81.5, React DOM 19.1.0
+- **UI Library**: React Native Paper (Material Design 3)
 - **Expo**: SDK ~54 with multiple packages (router, font, image, haptics, etc.)
 - **Navigation**: React Navigation v7, Expo Router ~6
 - **Animations**: React Native Reanimated ~4.1.1, Gesture Handler ~2.28.0
@@ -107,20 +138,30 @@ When implementing theming, refer to `app-example/` for patterns:
 
 ### Getting Started with Development
 1. Create new routes in the `app/` directory
-2. Build components in the `components/` directory
-3. Add custom hooks to `hooks/` as needed
-4. Define constants and theme in `constants/`
-5. Reference `app-example/` for component patterns and best practices
+2. Use React Native Paper components for UI consistency
+3. Build custom components in the `components/` directory when needed
+4. Add custom hooks to `hooks/` as needed
+5. Customize theme colors in `constants/theme.ts` to match branding
+6. Reference `app-example/` for component patterns and best practices
 
 ### File Organization
 - **Routes**: `app/` directory (file-based routing)
 - **Components**: `components/` directory (create as needed)
 - **Hooks**: `hooks/` directory (create as needed)
-- **Constants**: `constants/` directory (create as needed)
+- **Constants**: `constants/` directory (theme configuration)
 - **Reference**: `app-example/` (previous template code for patterns)
 
 ### Code Style
 - Use TypeScript strict mode
 - Follow Expo and React Native best practices
 - Use path aliases (`@/`) for imports
+- Prefer React Native Paper components for UI elements
+- Use `useTheme()` hook to access theme colors in custom components
 - Create platform-specific files when needed (.ios, .android, .web extensions)
+
+### UI Development
+- **Primary approach**: Use React Native Paper components (Button, Card, TextInput, etc.)
+- **Custom components**: When building custom UI, use `useTheme()` to access theme colors
+- **Icons**: Use `@expo/vector-icons` or Paper's Icon component
+- **Typography**: Use Paper's Text component with MD3 variants (displayLarge, headlineMedium, bodySmall, etc.)
+- **Theming**: All Paper components automatically respect light/dark mode
