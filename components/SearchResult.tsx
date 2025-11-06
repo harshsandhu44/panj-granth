@@ -11,20 +11,15 @@ import { useSettings } from "@/contexts/SettingsContext";
 
 interface SearchResultProps {
   result: SearchResultWithContext;
-  onPress?: () => void;
 }
 
-export function SearchResult({ result, onPress }: SearchResultProps) {
+export function SearchResult({ result }: SearchResultProps) {
   const theme = useTheme();
   const router = useRouter();
   const { settings } = useSettings();
   const { matchedLine, contextBefore, contextAfter } = result;
 
   const handlePress = () => {
-    if (onPress) {
-      onPress();
-    }
-    // Navigate to the Ang
     router.push(`/ang/${matchedLine.angNumber}`);
   };
 
