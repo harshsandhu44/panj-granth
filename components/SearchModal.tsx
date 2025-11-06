@@ -126,10 +126,8 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
         <Dialog.Title>Search Guru Granth Sahib</Dialog.Title>
 
         <Dialog.ScrollArea>
-          <ScrollView
-            showsVerticalScrollIndicator={true}
-            contentContainerStyle={{ paddingHorizontal: 24 }}
-          >
+          <ScrollView showsVerticalScrollIndicator={true}>
+            <View style={styles.dialogContent}>
               {/* Search Input */}
               <View style={styles.searchContainer}>
                 <TextInput
@@ -395,7 +393,8 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
                   )}
                 </>
               )}
-            </ScrollView>
+            </View>
+          </ScrollView>
         </Dialog.ScrollArea>
 
         <Dialog.Actions>
@@ -409,6 +408,9 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
 const styles = StyleSheet.create({
   dialog: {
     maxHeight: "90%",
+  },
+  dialogContent: {
+    paddingHorizontal: 24,
   },
   searchContainer: {
     paddingTop: 8,
