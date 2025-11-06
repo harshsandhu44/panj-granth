@@ -125,12 +125,11 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
       >
         <Dialog.Title>Search Guru Granth Sahib</Dialog.Title>
 
-        <Dialog.ScrollArea style={styles.scrollArea}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
+        <Dialog.Content style={styles.content}>
+          <ScrollView
+            showsVerticalScrollIndicator={true}
+            style={styles.scrollView}
           >
-            <ScrollView>
               {/* Search Input */}
               <View style={styles.searchContainer}>
                 <TextInput
@@ -397,8 +396,7 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
                 </>
               )}
             </ScrollView>
-          </KeyboardAvoidingView>
-        </Dialog.ScrollArea>
+        </Dialog.Content>
 
         <Dialog.Actions>
           <Button onPress={handleDismiss}>Close</Button>
@@ -412,8 +410,12 @@ const styles = StyleSheet.create({
   dialog: {
     maxHeight: "90%",
   },
-  scrollArea: {
+  content: {
+    paddingHorizontal: 0,
     maxHeight: 600,
+  },
+  scrollView: {
+    flex: 1,
   },
   searchContainer: {
     paddingHorizontal: 24,
