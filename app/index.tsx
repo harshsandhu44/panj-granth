@@ -58,7 +58,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Content title="Panj Granth" />
         <Appbar.Action icon="magnify" onPress={() => {}} />
@@ -221,7 +221,7 @@ export default function HomeScreen() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-    </>
+    </View>
   );
 }
 

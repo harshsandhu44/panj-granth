@@ -17,19 +17,19 @@ export default function AngScreen() {
 
   if (loading) {
     return (
-      <>
+      <View style={{ flex: 1 }}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title={`Ang ${angNumber}`} />
         </Appbar.Header>
         <LoadingAng />
-      </>
+      </View>
     );
   }
 
   if (error || !ang) {
     return (
-      <>
+      <View style={{ flex: 1 }}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title={`Ang ${angNumber}`} />
@@ -39,12 +39,12 @@ export default function AngScreen() {
           message={error || "Unable to load this Ang"}
           onRetry={refetch}
         />
-      </>
+      </View>
     );
   }
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={`Ang ${angNumber}`} />
@@ -77,7 +77,7 @@ export default function AngScreen() {
           <GurbaniLine key={line.id || index} line={line} />
         ))}
       </ScrollView>
-    </>
+    </View>
   );
 }
 

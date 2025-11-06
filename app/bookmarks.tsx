@@ -7,7 +7,7 @@ export default function BookmarksScreen() {
   const theme = useTheme();
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Bookmarks" />
@@ -28,7 +28,7 @@ export default function BookmarksScreen() {
           </Text>
         </View>
       </View>
-    </>
+    </View>
   );
 }
 

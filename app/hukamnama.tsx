@@ -14,19 +14,19 @@ export default function HukamnamaScreen() {
 
   if (loading) {
     return (
-      <>
+      <View style={{ flex: 1 }}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Daily Hukamnama" />
         </Appbar.Header>
         <LoadingAng />
-      </>
+      </View>
     );
   }
 
   if (error || !hukamnama) {
     return (
-      <>
+      <View style={{ flex: 1 }}>
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Daily Hukamnama" />
@@ -36,12 +36,12 @@ export default function HukamnamaScreen() {
           message={error || "Unable to load today's Hukamnama"}
           onRetry={refetch}
         />
-      </>
+      </View>
     );
   }
 
   return (
-    <>
+    <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Daily Hukamnama" />
@@ -83,7 +83,7 @@ export default function HukamnamaScreen() {
           <GurbaniLine key={line.id || index} line={line} />
         ))}
       </ScrollView>
-    </>
+    </View>
   );
 }
 

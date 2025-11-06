@@ -1,17 +1,19 @@
 /**
  * TranslationToggle Component
- * Menu for toggling translation preferences
+ * Dialog for toggling translation preferences
  */
 
 import { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import {
-  Menu,
+  Portal,
+  Dialog,
   IconButton,
   Checkbox,
   Text,
   RadioButton,
   Divider,
+  Button,
 } from "react-native-paper";
 import { useSettings } from "@/contexts/SettingsContext";
 
@@ -19,8 +21,8 @@ export function TranslationToggle() {
   const [visible, setVisible] = useState(false);
   const { settings, updateTranslationSettings } = useSettings();
 
-  const openMenu = () => setVisible(true);
-  const closeMenu = () => setVisible(false);
+  const openDialog = () => setVisible(true);
+  const closeDialog = () => setVisible(false);
 
   const {
     showEnglishTranslation,
@@ -30,111 +32,113 @@ export function TranslationToggle() {
   } = settings.translation;
 
   return (
-    <Menu
-      visible={visible}
-      onDismiss={closeMenu}
-      anchor={
-        <IconButton
-          icon="translate"
-          onPress={openMenu}
-          size={24}
-        />
-      }
-      anchorPosition="bottom"
-    >
-      <View style={styles.menuContent}>
-        <Text variant="labelLarge" style={styles.menuTitle}>
-          Translation Settings
-        </Text>
+    <>
+      <IconButton icon="translate" onPress={openDialog} size={24} />
 
-        <Divider style={styles.divider} />
+      <Portal>
+        <Dialog visible={visible} onDismiss={closeDialog}>
+          <Dialog.Title>Translation Settings</Dialog.Title>
+          <Dialog.ScrollArea>
+            <ScrollView>
+              <View style={styles.dialogContent}>
+                {/* English Translation */}
+                <Checkbox.Item
+                  label="English Translation"
+                  status={showEnglishTranslation ? "checked" : "unchecked"}
+                  onPress={() =>
+                    updateTranslationSettings({
+                      showEnglishTranslation: !showEnglishTranslation,
+                    })
+                  }
+                  mode="android"
+                />
 
-        {/* English Translation */}
-        <Checkbox.Item
-          label="English Translation"
-          status={showEnglishTranslation ? "checked" : "unchecked"}
-          onPress={() =>
-            updateTranslationSettings({
-              showEnglishTranslation: !showEnglishTranslation,
-            })
-          }
-          mode="android"
-        />
+                {/* Punjabi Translation */}
+                <Checkbox.Item
+                  label="Punjabi Translation"
+                  status={showPunjabiTranslation ? "checked" : "unchecked"}
+                  onPress={() =>
+                    updateTranslationSettings({
+                      showPunjabiTranslation: !showPunjabiTranslation,
+                    })
+                  }
+                  mode="android"
+                />
 
-        {/* Punjabi Translation */}
-        <Checkbox.Item
-          label="Punjabi Translation"
-          status={showPunjabiTranslation ? "checked" : "unchecked"}
-          onPress={() =>
-            updateTranslationSettings({
-              showPunjabiTranslation: !showPunjabiTranslation,
-            })
-          }
-          mode="android"
-        />
+                {/* Transliteration */}
+                <Checkbox.Item
+                  label="Transliteration"
+                  status={showTransliteration ? "checked" : "unchecked"}
+                  onPress={() =>
+                    updateTranslationSettings({
+                      showTransliteration: !showTransliteration,
+                    })
+                  }
+                  mode="android"
+                />
 
-        {/* Transliteration */}
-        <Checkbox.Item
-          label="Transliteration"
-          status={showTransliteration ? "checked" : "unchecked"}
-          onPress={() =>
-            updateTranslationSettings({
-              showTransliteration: !showTransliteration,
-            })
-          }
-          mode="android"
-        />
+                {/* Transliteration Type (only show if transliteration is enabled) */}
+                {showTransliteration && (
+                  <>
+                    <Divider style={styles.divider} />
+                    <Text variant="labelMedium" style={styles.subTitle}>
+                      Transliteration Style
+                    </Text>
 
-        {/* Transliteration Type (only show if transliteration is enabled) */}
-        {showTransliteration && (
-          <>
-            <Divider style={styles.divider} />
-            <Text variant="labelMedium" style={styles.subTitle}>
-              Transliteration Style
-            </Text>
+                    <RadioButton.Item
+                      label="Roman (English)"
+                      value="english"
+                      status={
+                        transliterationType === "english" ? "checked" : "unchecked"
+                      }
+                      onPress={() =>
+                        updateTranslationSettings({
+                          transliterationType: "english",
+                        })
+                      }
+                      mode="android"
+                    />
 
-            <RadioButton.Item
-              label="Roman (English)"
-              value="english"
-              status={transliterationType === "english" ? "checked" : "unchecked"}
-              onPress={() =>
-                updateTranslationSettings({ transliterationType: "english" })
-              }
-              mode="android"
-            />
-
-            <RadioButton.Item
-              label="Devanagari"
-              value="devanagari"
-              status={transliterationType === "devanagari" ? "checked" : "unchecked"}
-              onPress={() =>
-                updateTranslationSettings({ transliterationType: "devanagari" })
-              }
-              mode="android"
-            />
-          </>
-        )}
-      </View>
-    </Menu>
+                    <RadioButton.Item
+                      label="Devanagari"
+                      value="devanagari"
+                      status={
+                        transliterationType === "devanagari"
+                          ? "checked"
+                          : "unchecked"
+                      }
+                      onPress={() =>
+                        updateTranslationSettings({
+                          transliterationType: "devanagari",
+                        })
+                      }
+                      mode="android"
+                    />
+                  </>
+                )}
+              </View>
+            </ScrollView>
+          </Dialog.ScrollArea>
+          <Dialog.Actions>
+            <Button onPress={closeDialog}>Done</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  menuContent: {
-    minWidth: 280,
-  },
-  menuTitle: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontWeight: "600",
+  dialogContent: {
+    paddingHorizontal: 0,
   },
   subTitle: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
     paddingTop: 8,
     paddingBottom: 4,
     fontWeight: "500",
   },
   divider: {
-    marginVertical: 4,
+    marginVertical: 8,
   },
 });
