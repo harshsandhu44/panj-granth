@@ -11,7 +11,7 @@ export default function RootLayout() {
   return (
     <SettingsProvider>
       <PaperProvider theme={theme}>
-        <Stack />
+        <Stack screenOptions={{ headerShown: false }} />
       </PaperProvider>
     </SettingsProvider>
   );

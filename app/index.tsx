@@ -92,7 +92,10 @@ export default function HomeScreen() {
                 <Text
                   variant="bodyMedium"
                   numberOfLines={3}
-                  style={[styles.preview, { color: theme.colors.onSurfaceVariant }]}
+                  style={[
+                    styles.preview,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
                 >
                   {getPreviewText(hukamnama.lines, 120)}
                 </Text>
@@ -227,6 +230,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hukamnamaCard: {
+    padding: 8,
+    paddingTop: 16,
     margin: 16,
     marginBottom: 8,
   },

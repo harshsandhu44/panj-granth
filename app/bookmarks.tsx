@@ -1,6 +1,6 @@
 import { View, StyleSheet } from "react-native";
-import { Stack, useRouter } from "expo-router";
-import { Text, Appbar, useTheme, List } from "react-native-paper";
+import { useRouter } from "expo-router";
+import { Text, Appbar, useTheme } from "react-native-paper";
 
 export default function BookmarksScreen() {
   const router = useRouter();
@@ -8,11 +8,6 @@ export default function BookmarksScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Bookmarks" />

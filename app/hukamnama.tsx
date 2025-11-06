@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet } from "react-native";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Text, Appbar, useTheme, Chip, Divider } from "react-native-paper";
 import { useHukamnama } from "@/hooks/useHukamnama";
 import { GurbaniLine } from "@/components/GurbaniLine";
@@ -15,7 +15,6 @@ export default function HukamnamaScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ headerShown: false }} />
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Daily Hukamnama" />
@@ -28,7 +27,6 @@ export default function HukamnamaScreen() {
   if (error || !hukamnama) {
     return (
       <>
-        <Stack.Screen options={{ headerShown: false }} />
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title="Daily Hukamnama" />
@@ -44,7 +42,6 @@ export default function HukamnamaScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Daily Hukamnama" />

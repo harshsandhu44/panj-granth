@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet } from "react-native";
-import { useLocalSearchParams, Stack, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Appbar, useTheme, Chip, Divider } from "react-native-paper";
 import { useAng } from "@/hooks/useAng";
 import { GurbaniLine } from "@/components/GurbaniLine";
@@ -18,7 +18,6 @@ export default function AngScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ headerShown: false }} />
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title={`Ang ${angNumber}`} />
@@ -31,7 +30,6 @@ export default function AngScreen() {
   if (error || !ang) {
     return (
       <>
-        <Stack.Screen options={{ headerShown: false }} />
         <Appbar.Header>
           <Appbar.BackAction onPress={() => router.back()} />
           <Appbar.Content title={`Ang ${angNumber}`} />
@@ -47,7 +45,6 @@ export default function AngScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={`Ang ${angNumber}`} />
