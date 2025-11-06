@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Appbar, useTheme, Chip, Divider } from "react-native-paper";
 import { useAng } from "@/hooks/useAng";
@@ -58,7 +58,7 @@ export default function AngScreen() {
       >
         {/* Metadata */}
         {(ang.writer || ang.raag) && (
-          <>
+          <View>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -69,7 +69,7 @@ export default function AngScreen() {
               <Chip icon="counter">{ang.count} lines</Chip>
             </ScrollView>
             <Divider />
-          </>
+          </View>
         )}
 
         {/* Lines */}

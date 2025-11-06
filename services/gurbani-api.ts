@@ -6,8 +6,10 @@
 import {
   ApiAngResponse,
   ApiHukamnamaResponse,
+  ApiSearchResponse,
   ApiError,
   ApiResponse,
+  SearchFilters,
 } from "@/types/api";
 
 const API_BASE_URL = "https://api.gurbaninow.com/v2";
@@ -187,6 +189,81 @@ export class GurbaniAPI {
       if (error instanceof Error) {
         throw new GurbaniAPIError(
           `Network error while fetching Hukamnama: ${error.message}`
+        );
+      }
+      throw new GurbaniAPIError("Unknown error occurred");
+    }
+  }
+
+  /**
+   * Search Guru Granth Sahib
+   * @param query - Search query (URL-encoded automatically)
+   * @param filters - Optional search filters
+   * @returns Promise<ApiSearchResponse>
+   */
+  static async search(
+    query: string,
+    filters: SearchFilters = {}
+  ): Promise<ApiSearchResponse> {
+    if (!query || query.trim().length === 0) {
+      throw new GurbaniAPIError("Search query cannot be empty");
+    }
+
+    // Build query parameters
+    const params = new URLSearchParams();
+
+    // Default filters
+    const searchType = filters.searchType ?? 3; // Default: Full Word (English)
+    const source = filters.source ?? "G"; // Default: Guru Granth Sahib
+    const results = Math.min(filters.results ?? 20, 100); // Max 100
+    const skip = filters.skip ?? 0;
+
+    params.append("searchtype", searchType.toString());
+    params.append("source", source);
+    params.append("results", results.toString());
+    params.append("skip", skip.toString());
+
+    // Optional filters
+    if (filters.writer !== undefined) {
+      params.append("writer", filters.writer.toString());
+    }
+    if (filters.raag !== undefined) {
+      params.append("raag", filters.raag.toString());
+    }
+    if (filters.ang !== undefined) {
+      params.append("ang", filters.ang.toString());
+    }
+
+    // Encode query for URL
+    const encodedQuery = encodeURIComponent(query.trim());
+    const url = `${API_BASE_URL}/search/${encodedQuery}?${params.toString()}`;
+
+    try {
+      const response = await fetchWithTimeout(url);
+
+      if (!response.ok) {
+        throw new GurbaniAPIError(
+          `Failed to search for "${query}"`,
+          response.status
+        );
+      }
+
+      const data: ApiResponse<ApiSearchResponse> = await response.json();
+
+      if (isApiError(data)) {
+        throw new GurbaniAPIError(
+          data.message || `Error searching for "${query}"`
+        );
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof GurbaniAPIError) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new GurbaniAPIError(
+          `Network error while searching: ${error.message}`
         );
       }
       throw new GurbaniAPIError("Unknown error occurred");

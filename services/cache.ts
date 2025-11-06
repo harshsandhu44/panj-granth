@@ -3,14 +3,17 @@
  */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ApiAngResponse, ApiHukamnamaResponse } from "@/types/api";
+import { ApiAngResponse, ApiHukamnamaResponse, ApiSearchResponse } from "@/types/api";
 
 const CACHE_KEY_PREFIX = "@panj_granth_cache:";
 const ANG_CACHE_KEY = `${CACHE_KEY_PREFIX}ang:`;
 const HUKAMNAMA_CACHE_KEY = `${CACHE_KEY_PREFIX}hukamnama:`;
+const SEARCH_CACHE_KEY = `${CACHE_KEY_PREFIX}search:`;
 const MAX_ANG_CACHE_SIZE = 50;
+const MAX_SEARCH_CACHE_SIZE = 20;
 const ANG_CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 const HUKAMNAMA_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const SEARCH_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 interface CacheEntry<T> {
   data: T;
@@ -19,6 +22,7 @@ interface CacheEntry<T> {
 
 interface CacheMetadata {
   angKeys: string[];
+  searchKeys: string[];
   lastAccess: Record<string, number>;
 }
 
@@ -40,7 +44,7 @@ export class CacheService {
     } catch (error) {
       console.error("Error reading cache metadata:", error);
     }
-    return { angKeys: [], lastAccess: {} };
+    return { angKeys: [], searchKeys: [], lastAccess: {} };
   }
 
   /**
@@ -257,11 +261,140 @@ export class CacheService {
   }
 
   /**
+   * Create cache hash for search query
+   */
+  private static createSearchHash(query: string, filters: any): string {
+    const filterStr = JSON.stringify(filters);
+    return `${query}:${filterStr}`;
+  }
+
+  /**
+   * Evict least recently used search from cache
+   */
+  private static async evictSearchLRU(): Promise<void> {
+    const metadata = await this.getMetadata();
+    if (metadata.searchKeys.length === 0) return;
+
+    // Find LRU key
+    let lruKey = metadata.searchKeys[0];
+    let lruTime = metadata.lastAccess[`search:${lruKey}`] || 0;
+
+    for (const key of metadata.searchKeys) {
+      const accessTime = metadata.lastAccess[`search:${key}`] || 0;
+      if (accessTime < lruTime) {
+        lruKey = key;
+        lruTime = accessTime;
+      }
+    }
+
+    // Remove from cache
+    try {
+      await AsyncStorage.removeItem(`${SEARCH_CACHE_KEY}${lruKey}`);
+      metadata.searchKeys = metadata.searchKeys.filter((k) => k !== lruKey);
+      delete metadata.lastAccess[`search:${lruKey}`];
+      await this.saveMetadata(metadata);
+    } catch (error) {
+      console.error("Error evicting LRU search cache entry:", error);
+    }
+  }
+
+  /**
+   * Cache search results
+   */
+  static async cacheSearch(
+    query: string,
+    filters: any,
+    data: ApiSearchResponse
+  ): Promise<void> {
+    try {
+      const hash = this.createSearchHash(query, filters);
+      const entry: CacheEntry<ApiSearchResponse> = {
+        data,
+        timestamp: Date.now(),
+      };
+
+      const metadata = await this.getMetadata();
+
+      // Check if we need to evict
+      if (
+        metadata.searchKeys.length >= MAX_SEARCH_CACHE_SIZE &&
+        !metadata.searchKeys.includes(hash)
+      ) {
+        await this.evictSearchLRU();
+      }
+
+      // Save the cache entry
+      await AsyncStorage.setItem(
+        `${SEARCH_CACHE_KEY}${hash}`,
+        JSON.stringify(entry)
+      );
+
+      // Update metadata
+      if (!metadata.searchKeys.includes(hash)) {
+        metadata.searchKeys.push(hash);
+      }
+      metadata.lastAccess[`search:${hash}`] = Date.now();
+      await this.saveMetadata(metadata);
+    } catch (error) {
+      console.error("Error caching search:", error);
+    }
+  }
+
+  /**
+   * Get cached search results
+   */
+  static async getCachedSearch(
+    query: string,
+    filters: any
+  ): Promise<ApiSearchResponse | null> {
+    try {
+      const hash = this.createSearchHash(query, filters);
+      const cachedStr = await AsyncStorage.getItem(`${SEARCH_CACHE_KEY}${hash}`);
+      if (!cachedStr) return null;
+
+      const entry: CacheEntry<ApiSearchResponse> = JSON.parse(cachedStr);
+
+      // Check if expired
+      if (this.isExpired(entry.timestamp, SEARCH_CACHE_TTL)) {
+        await this.clearSearch(query, filters);
+        return null;
+      }
+
+      // Update last access time
+      const metadata = await this.getMetadata();
+      metadata.lastAccess[`search:${hash}`] = Date.now();
+      await this.saveMetadata(metadata);
+
+      return entry.data;
+    } catch (error) {
+      console.error("Error getting cached search:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Clear specific search from cache
+   */
+  static async clearSearch(query: string, filters: any): Promise<void> {
+    try {
+      const hash = this.createSearchHash(query, filters);
+      await AsyncStorage.removeItem(`${SEARCH_CACHE_KEY}${hash}`);
+      const metadata = await this.getMetadata();
+      metadata.searchKeys = metadata.searchKeys.filter((k) => k !== hash);
+      delete metadata.lastAccess[`search:${hash}`];
+      await this.saveMetadata(metadata);
+    } catch (error) {
+      console.error("Error clearing search cache:", error);
+    }
+  }
+
+  /**
    * Get cache statistics
    */
   static async getStats(): Promise<{
     angCount: number;
     hukamnamaCount: number;
+    searchCount: number;
   }> {
     try {
       const keys = await AsyncStorage.getAllKeys();
@@ -271,10 +404,13 @@ export class CacheService {
       const hukamnamaCount = keys.filter((key) =>
         key.startsWith(HUKAMNAMA_CACHE_KEY)
       ).length;
-      return { angCount, hukamnamaCount };
+      const searchCount = keys.filter((key) =>
+        key.startsWith(SEARCH_CACHE_KEY)
+      ).length;
+      return { angCount, hukamnamaCount, searchCount };
     } catch (error) {
       console.error("Error getting cache stats:", error);
-      return { angCount: 0, hukamnamaCount: 0 };
+      return { angCount: 0, hukamnamaCount: 0, searchCount: 0 };
     }
   }
 }

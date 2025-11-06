@@ -6,8 +6,11 @@
 import {
   ApiAngResponse,
   ApiHukamnamaResponse,
+  ApiSearchResponse,
+  ApiSearchResult,
   ApiLine,
 } from "@/types/api";
+import { SearchLine, SearchResultWithContext } from "@/types/index";
 
 export interface TransformedLine {
   id: string;
@@ -143,4 +146,42 @@ export function formatDateForCache(date: Date): string {
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const day = date.getDate().toString().padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+/**
+ * Transform API line to SearchLine format
+ */
+export function transformSearchLine(apiLine: ApiLine): SearchLine {
+  return {
+    id: apiLine.id,
+    angNumber: apiLine.pageno,
+    lineNumber: apiLine.lineno,
+    shabadId: apiLine.shabadid,
+    gurmukhi: apiLine.gurmukhi.unicode,
+    translation: {
+      english: apiLine.translation?.english?.default,
+      punjabi: apiLine.translation?.punjabi?.default?.unicode,
+    },
+    transliteration: {
+      english: apiLine.transliteration?.english?.text,
+      devanagari: apiLine.transliteration?.devanagari?.text,
+    },
+    writer: apiLine.writer?.english,
+    raag: apiLine.raag?.english,
+  };
+}
+
+/**
+ * Transform search results with context
+ * Note: API doesn't provide context lines, so we return empty arrays
+ * Context could be fetched separately by fetching the full Ang if needed
+ */
+export function transformSearchResults(
+  apiResponse: ApiSearchResponse
+): SearchResultWithContext[] {
+  return apiResponse.results.map((result: ApiSearchResult) => ({
+    matchedLine: transformSearchLine(result.line),
+    contextBefore: [], // Would need separate API call to fetch context
+    contextAfter: [], // Would need separate API call to fetch context
+  }));
 }

@@ -164,3 +164,26 @@ export interface ApiError {
 }
 
 export type ApiResponse<T> = T | ApiError;
+
+/**
+ * Search API Types
+ */
+export interface SearchFilters {
+  searchType?: number; // 0-7: Different search algorithms
+  source?: string; // G, D, B, N, A, U
+  writer?: number; // Writer ID (1-49)
+  raag?: number; // Raag ID (1-35)
+  ang?: number; // Specific Ang number
+  results?: number; // Number of results (max 100)
+  skip?: number; // Pagination offset
+}
+
+export interface ApiSearchResult {
+  line: ApiLine;
+}
+
+export interface ApiSearchResponse {
+  count: number;
+  results: ApiSearchResult[];
+  error: boolean;
+}

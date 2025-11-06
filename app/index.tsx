@@ -22,6 +22,7 @@ import {
 } from "@/services/mock-data";
 import { useHukamnama } from "@/hooks/useHukamnama";
 import { getPreviewText } from "@/services/transformers";
+import { SearchModal } from "@/components/SearchModal";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function HomeScreen() {
   const readingHistory = getMockReadingHistory();
 
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [angNumber, setAngNumber] = useState("");
 
   const showDialog = () => setDialogVisible(true);
@@ -61,7 +63,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Content title="Panj Granth" />
-        <Appbar.Action icon="magnify" onPress={() => {}} />
+        <Appbar.Action icon="magnify" onPress={() => setSearchModalVisible(true)} />
         <Appbar.Action icon="cog-outline" onPress={() => {}} />
       </Appbar.Header>
 
@@ -78,7 +80,7 @@ export default function HomeScreen() {
               <ActivityIndicator size="large" style={styles.loadingIndicator} />
             </Card.Content>
           ) : hukamnama ? (
-            <>
+            <View>
               <Card.Content>
                 <Text variant="labelMedium" style={styles.cardLabel}>
                   TODAY&apos;S HUKAMNAMA
@@ -109,7 +111,7 @@ export default function HomeScreen() {
                   Read Full
                 </Button>
               </Card.Actions>
-            </>
+            </View>
           ) : (
             <Card.Content>
               <Text variant="labelMedium" style={styles.cardLabel}>
@@ -191,6 +193,12 @@ export default function HomeScreen() {
           </List.Section>
         </View>
       </ScrollView>
+
+      {/* Search Modal */}
+      <SearchModal
+        visible={searchModalVisible}
+        onDismiss={() => setSearchModalVisible(false)}
+      />
 
       {/* Go to Ang Dialog */}
       <Portal>

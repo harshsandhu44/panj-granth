@@ -127,3 +127,40 @@ export enum Section {
   ANAND_SAHIB = "Anand Sahib",
   // Add more as needed
 }
+
+/**
+ * Search-related types
+ */
+export interface SearchLine {
+  id: string;
+  angNumber: number;
+  lineNumber: number;
+  shabadId: string;
+  gurmukhi: string;
+  translation?: {
+    english?: string;
+    punjabi?: string;
+  };
+  transliteration?: {
+    english?: string;
+    devanagari?: string;
+  };
+  writer?: string;
+  raag?: string;
+}
+
+export interface SearchResultWithContext {
+  matchedLine: SearchLine;
+  contextBefore: SearchLine[]; // Lines before the match
+  contextAfter: SearchLine[]; // Lines after the match
+}
+
+export interface SearchState {
+  query: string;
+  results: SearchResultWithContext[];
+  totalCount: number;
+  loading: boolean;
+  error: string | null;
+  hasMore: boolean; // For pagination
+  skip: number; // Current pagination offset
+}
