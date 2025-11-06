@@ -1,78 +1,90 @@
 import { View, ScrollView, StyleSheet } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import { Text, Appbar, useTheme, Chip } from "react-native-paper";
-import { getMockHukamnama } from "@/services/mock-data";
+import { Text, Appbar, useTheme, Chip, Divider } from "react-native-paper";
+import { useHukamnama } from "@/hooks/useHukamnama";
+import { GurbaniLine } from "@/components/GurbaniLine";
+import { LoadingAng } from "@/components/LoadingAng";
+import { ErrorView } from "@/components/ErrorView";
+import { TranslationToggle } from "@/components/TranslationToggle";
 
 export default function HukamnamaScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const hukamnama = getMockHukamnama();
+  const { hukamnama, loading, error, refetch } = useHukamnama();
+
+  if (loading) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.back()} />
+          <Appbar.Content title="Daily Hukamnama" />
+        </Appbar.Header>
+        <LoadingAng />
+      </>
+    );
+  }
+
+  if (error || !hukamnama) {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <Appbar.Header>
+          <Appbar.BackAction onPress={() => router.back()} />
+          <Appbar.Content title="Daily Hukamnama" />
+        </Appbar.Header>
+        <ErrorView
+          title="Error loading Hukamnama"
+          message={error || "Unable to load today's Hukamnama"}
+          onRetry={refetch}
+        />
+      </>
+    );
+  }
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
+      <Stack.Screen options={{ headerShown: false }} />
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title="Daily Hukamnama" />
+        <TranslationToggle />
         <Appbar.Action icon="share-variant" onPress={() => {}} />
       </Appbar.Header>
+
       <ScrollView
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
         <View style={styles.content}>
-          <View style={styles.metaContainer}>
-            <Chip icon="calendar" style={styles.chip}>
-              {new Date(hukamnama.date).toLocaleDateString()}
-            </Chip>
-            <Chip icon="music" style={styles.chip}>
-              {hukamnama.raag}
-            </Chip>
-            <Chip icon="account" style={styles.chip}>
-              {hukamnama.author}
-            </Chip>
+          {/* Date Information */}
+          <View style={styles.dateContainer}>
+            <Text variant="titleMedium" style={{ fontWeight: "600" }}>
+              {hukamnama.date.gregorian}
+            </Text>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              {hukamnama.date.nanakshahi}
+            </Text>
           </View>
 
-          <Text
-            variant="titleMedium"
-            style={[styles.angNumber, { color: theme.colors.primary }]}
+          {/* Metadata */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.metaContainer}
           >
-            Ang {hukamnama.angNumber}
-          </Text>
+            <Chip icon="book-open-variant">Ang {hukamnama.pageNumber}</Chip>
+            {hukamnama.writer && <Chip icon="account">{hukamnama.writer}</Chip>}
+            {hukamnama.raag && <Chip icon="music">{hukamnama.raag}</Chip>}
+            <Chip icon="counter">{hukamnama.count} lines</Chip>
+          </ScrollView>
 
-          <Text variant="labelLarge" style={styles.label}>
-            Gurmukhi
-          </Text>
-          <Text
-            variant="bodyLarge"
-            style={[styles.text, { color: theme.colors.onSurface }]}
-          >
-            {hukamnama.gurmukhi}
-          </Text>
-
-          <Text variant="labelLarge" style={[styles.label, styles.sectionSpace]}>
-            Transliteration
-          </Text>
-          <Text
-            variant="bodyMedium"
-            style={[styles.text, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {hukamnama.transliteration}
-          </Text>
-
-          <Text variant="labelLarge" style={[styles.label, styles.sectionSpace]}>
-            Translation
-          </Text>
-          <Text
-            variant="bodyMedium"
-            style={[styles.text, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {hukamnama.translation}
-          </Text>
+          <Divider style={styles.divider} />
         </View>
+
+        {/* Lines */}
+        {hukamnama.lines.map((line, index) => (
+          <GurbaniLine key={line.id || index} line={line} />
+        ))}
       </ScrollView>
     </>
   );
@@ -85,27 +97,14 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  dateContainer: {
+    marginBottom: 16,
+  },
   metaContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: 8,
-    marginBottom: 16,
+    paddingBottom: 4,
   },
-  chip: {
-    marginRight: 4,
-  },
-  angNumber: {
-    marginBottom: 16,
-    fontWeight: "600",
-  },
-  label: {
-    marginBottom: 8,
-    fontWeight: "600",
-  },
-  text: {
-    lineHeight: 24,
-  },
-  sectionSpace: {
-    marginTop: 24,
+  divider: {
+    marginTop: 12,
   },
 });

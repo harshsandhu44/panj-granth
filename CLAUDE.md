@@ -8,7 +8,7 @@ Panj Granth is a React Native mobile application built with Expo and TypeScript 
 
 **Purpose**: Enable users to read and explore Guru Granth Sahib's 1,430 Angs (pages) with features like daily Hukamnama, quick navigation, and reading history.
 
-**Current Status**: MVP Home page implemented with Daily Hukamnama display, quick action buttons, and recent reading history. Using mock data for development.
+**Current Status**: Full API integration complete! App fetches real Guru Granth Sahib data from Gurbani Now API (https://api.gurbaninow.com/v2) with translation toggle, persistent caching, and error handling.
 
 ## Development Commands
 
@@ -38,24 +38,74 @@ npm run reset-project       # Move starter code to app-example and create blank 
 ## Current Application Structure
 
 ### Routes
-- **Root layout** (`app/_layout.tsx`): Stack navigator wrapped with React Native Paper's PaperProvider for theming
-- **Home screen** (`app/index.tsx`): Main screen with Daily Hukamnama card, quick actions, and recent reading history
-- **Ang screen** (`app/ang/[id].tsx`): Individual Ang reading screen with Gurmukhi text, transliteration, and translation
-- **Hukamnama screen** (`app/hukamnama.tsx`): Full daily Hukamnama display with metadata
+- **Root layout** (`app/_layout.tsx`): Stack navigator wrapped with SettingsProvider and PaperProvider for state management and theming
+- **Home screen** (`app/index.tsx`): Main screen with real daily Hukamnama card, quick actions, and reading history (mock)
+- **Ang screen** (`app/ang/[id].tsx`): Individual Ang reading screen with API integration, translation toggle, loading/error states
+- **Hukamnama screen** (`app/hukamnama.tsx`): Full daily Hukamnama display with API integration, metadata, and translation toggle
 - **Bookmarks screen** (`app/bookmarks.tsx`): Saved bookmarks (currently showing empty state)
 
 ### Data & Services
-- **Types** (`types/index.ts`): TypeScript interfaces for Ang, Shabad, Hukamnama, ReadingHistoryItem, and enums for Raag, Author, Section
-- **Mock Data Service** (`services/mock-data.ts`): Development mock data including:
-  - Sample Hukamnama with Gurmukhi text
-  - Reading history (4 recent items)
-  - Helper functions (formatRelativeTime, getRandomAngNumber, getMockAngData)
+- **API Types** (`types/api.ts`): Complete TypeScript definitions for Gurbani Now API responses
+- **App Types** (`types/index.ts`): Application-level interfaces for Ang, Shabad, Hukamnama, ReadingHistoryItem
+- **API Service** (`services/gurbani-api.ts`): GurbaniAPI class with methods for fetching Angs and Hukamnama
+- **Cache Service** (`services/cache.ts`): Persistent caching using AsyncStorage with LRU eviction (max 50 Angs, 7-day TTL)
+- **Transformers** (`services/transformers.ts`): Data transformation utilities to convert API responses to app format
+- **Mock Data** (`services/mock-data.ts`): Fallback mock data for reading history (temporary)
+
+### State Management
+- **SettingsContext** (`contexts/SettingsContext.tsx`): Translation preferences with AsyncStorage persistence
+  - showEnglishTranslation (default: true)
+  - showPunjabiTranslation (default: false)
+  - showTransliteration (default: false)
+  - transliterationType: 'english' | 'devanagari'
+
+### Custom Hooks
+- **useAng** (`hooks/useAng.ts`): Fetch and cache individual Ang data with loading/error states
+- **useHukamnama** (`hooks/useHukamnama.ts`): Fetch and cache daily Hukamnama with loading/error states
+- **useSettings** (from SettingsContext): Access and update translation preferences
 
 ### Components
-No custom components directory yet. Currently using React Native Paper components throughout the app. Previous template components are available in `app-example/components/` for reference.
+- **GurbaniLine** (`components/GurbaniLine.tsx`): Renders individual line with conditional translations based on settings
+- **TranslationToggle** (`components/TranslationToggle.tsx`): Header menu for managing translation preferences
+- **LoadingAng** (`components/LoadingAng.tsx`): Loading skeleton for Ang screens
+- **ErrorView** (`components/ErrorView.tsx`): Error state component with retry functionality
 
 ### Constants
 - **Theme** (`constants/theme.ts`): Material Design 3 theme configuration with light and dark mode support
+
+## API Integration
+
+### Gurbani Now API v2
+**Base URL**: `https://api.gurbaninow.com/v2`
+**Documentation**: https://github.com/montydhanjal/api
+
+### Available Endpoints
+1. **GET /ang/:page/:source** - Fetch specific Ang (page 1-1430)
+2. **GET /hukamnama/today** - Fetch today's Hukamnama
+3. **GET /hukamnama/:year/:month/:day** - Fetch historical Hukamnama
+
+### Data Flow
+```
+User Action → Custom Hook (useAng/useHukamnama)
+  → Check Cache (CacheService)
+  → If cached: Return cached data
+  → If not: Fetch from API (GurbaniAPI)
+  → Transform data (transformers)
+  → Cache response (CacheService)
+  → Return to component
+```
+
+### Error Handling
+- Network errors: Display error view with retry button
+- Invalid Ang numbers: Validate (1-1430) before API call
+- API errors: Parse error response and show user-friendly message
+- Timeout: 10-second timeout on all requests
+
+### Performance Optimizations
+- **Cache-first strategy**: Always check cache before API calls
+- **Persistent storage**: AsyncStorage for offline access
+- **LRU eviction**: Automatic cleanup when cache size exceeds limit
+- **Lazy loading**: Components render incrementally
 
 ## Architecture & Best Practices
 
@@ -131,11 +181,13 @@ function MyComponent() {
 ### Key Dependencies
 - **Core**: React 19.1.0, React Native 0.81.5, React DOM 19.1.0
 - **UI Library**: React Native Paper (Material Design 3)
+- **Storage**: @react-native-async-storage/async-storage (for caching & settings)
 - **Expo**: SDK ~54 with multiple packages (router, font, image, haptics, etc.)
 - **Navigation**: React Navigation v7, Expo Router ~6
 - **Animations**: React Native Reanimated ~4.1.1, Gesture Handler ~2.28.0
 - **Platform Support**: react-native-web ~0.21.0, safe-area-context, screens
 - **Development**: TypeScript ~5.9.2, ESLint ^9.25.0
+- **API**: Gurbani Now API v2 (https://api.gurbaninow.com/v2)
 
 ## Development Guidelines
 
@@ -171,35 +223,64 @@ function MyComponent() {
 
 ## Implemented Features
 
-### Home Page
-- **Daily Hukamnama Card**: Prominent display of today's Hukamnama with preview and "Read Full" action
-- **Quick Actions**:
-  - Continue Reading (navigates to last read Ang)
-  - Go to Ang (dialog with number input for direct navigation)
-  - Random Ang (opens random page 1-1430)
-  - Bookmarks (navigates to bookmarks screen)
-- **Recent Reading History**: List of last 4 read Angs with timestamps and previews
-- **Navigation**: All buttons and list items have working navigation
+### ✅ API Integration (Complete)
+- **Gurbani Now API v2**: Full integration with real Guru Granth Sahib data
+- **Ang Fetching**: Fetch any Ang (1-1430) with complete text and metadata
+- **Daily Hukamnama**: Fetch today's Hukamnama from Golden Temple
+- **Error Handling**: Comprehensive error handling with user-friendly messages
+- **Loading States**: Skeleton screens and loading indicators throughout app
 
-### Reading Screens
-- **Ang Screen**: Display individual Ang with Gurmukhi, transliteration, and translation
-- **Hukamnama Screen**: Full Hukamnama display with metadata chips (date, Raag, author)
+### ✅ Translation System (Complete)
+- **Translation Toggle**: Header button opens menu with translation preferences
+- **English Translation**: Enabled by default, can be toggled on/off
+- **Punjabi Translation**: Available as optional display
+- **Transliteration**: Roman (English) or Devanagari options
+- **Persistent Settings**: Preferences saved to AsyncStorage and persist across app restarts
+- **Dynamic Updates**: UI updates immediately when translation preferences change
+
+### ✅ Caching System (Complete)
+- **Persistent Cache**: AsyncStorage-based caching for offline access
+- **LRU Eviction**: Automatically evicts least recently used Angs when cache reaches 50 items
+- **TTL Management**: Angs cached for 7 days, Hukamnama for 24 hours
+- **Cache Statistics**: Track cache size and hit rates
+- **Performance**: Check cache before API calls for instant loading
+
+### ✅ Home Page
+- **Daily Hukamnama Card**: Real-time fetch with loading state and preview
+- **Quick Actions**: Continue Reading, Go to Ang, Random Ang, Bookmarks
+- **Recent Reading History**: Mock data (will be replaced with real history tracking)
+- **Navigation**: All buttons functional with proper routing
+
+### ✅ Reading Screens
+- **Ang Screen**:
+  - Fetch real data from API
+  - Display all lines with GurbaniLine component
+  - Translation toggle in header
+  - Metadata chips (Writer, Raag, line count)
+  - Loading and error states with retry
+- **Hukamnama Screen**:
+  - Fetch today's Hukamnama from API
+  - Display Gregorian and Nanakshahi dates
+  - All lines rendered with translations
+  - Translation toggle in header
+  - Metadata chips and sharing option
 - **Bookmarks Screen**: Empty state placeholder (ready for implementation)
 
-### Data Layer
-- **Type system**: Complete TypeScript interfaces for all data structures
-- **Mock data service**: Development data with realistic Gurmukhi text samples
-- **Helper functions**: Time formatting, random Ang generation, data accessors
+### ✅ UI Components
+- **GurbaniLine**: Intelligent line rendering with conditional translations
+- **TranslationToggle**: Material Design menu for preference management
+- **LoadingAng**: Professional loading skeleton
+- **ErrorView**: User-friendly error display with retry button
 
 ## Feature Roadmap
 
 ### Phase 1: Core Reading Experience (Next)
-- [ ] Integrate real Guru Granth Sahib data (JSON or SQLite database)
-- [ ] Implement actual Hukamnama API integration (Golden Temple API)
+- [x] ~~Integrate real Guru Granth Sahib data~~ **COMPLETED** - API integration complete
+- [x] ~~Implement actual Hukamnama API integration~~ **COMPLETED** - Fetching from Gurbani Now API
 - [ ] Add font size adjustment controls
-- [ ] Implement bookmarking functionality
-- [ ] Add persistent reading history with AsyncStorage
-- [ ] Search functionality (basic text search)
+- [ ] Implement bookmarking functionality (save/load with AsyncStorage)
+- [ ] Add persistent reading history with AsyncStorage (track Angs visited)
+- [ ] Search functionality (use API search endpoint)
 
 ### Phase 2: Enhanced Reading
 - [ ] Browse by Raag screen

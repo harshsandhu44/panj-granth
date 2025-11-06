@@ -13,18 +13,20 @@ import {
   Dialog,
   TextInput,
   Divider,
+  ActivityIndicator,
 } from "react-native-paper";
 import {
-  getMockHukamnama,
   getMockReadingHistory,
   formatRelativeTime,
   getRandomAngNumber,
 } from "@/services/mock-data";
+import { useHukamnama } from "@/hooks/useHukamnama";
+import { getPreviewText } from "@/services/transformers";
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const hukamnama = getMockHukamnama();
+  const { hukamnama, loading: hukamnamaLoading } = useHukamnama();
   const readingHistory = getMockReadingHistory();
 
   const [dialogVisible, setDialogVisible] = useState(false);
@@ -68,33 +70,53 @@ export default function HomeScreen() {
       >
         {/* Daily Hukamnama Card */}
         <Card style={styles.hukamnamaCard} mode="elevated">
-          <Card.Content>
-            <Text variant="labelMedium" style={styles.cardLabel}>
-              TODAY'S HUKAMNAMA
-            </Text>
-            <Text
-              variant="headlineSmall"
-              style={[styles.cardTitle, { color: theme.colors.primary }]}
-            >
-              Ang {hukamnama.angNumber}
-            </Text>
-            <Text
-              variant="bodyMedium"
-              numberOfLines={3}
-              style={[styles.preview, { color: theme.colors.onSurfaceVariant }]}
-            >
-              {hukamnama.gurmukhi}
-            </Text>
-          </Card.Content>
-          <Card.Actions>
-            <Button
-              mode="contained"
-              onPress={() => router.push("/hukamnama")}
-              style={styles.readButton}
-            >
-              Read Full
-            </Button>
-          </Card.Actions>
+          {hukamnamaLoading ? (
+            <Card.Content>
+              <Text variant="labelMedium" style={styles.cardLabel}>
+                TODAY&apos;S HUKAMNAMA
+              </Text>
+              <ActivityIndicator size="large" style={styles.loadingIndicator} />
+            </Card.Content>
+          ) : hukamnama ? (
+            <>
+              <Card.Content>
+                <Text variant="labelMedium" style={styles.cardLabel}>
+                  TODAY&apos;S HUKAMNAMA
+                </Text>
+                <Text
+                  variant="headlineSmall"
+                  style={[styles.cardTitle, { color: theme.colors.primary }]}
+                >
+                  Ang {hukamnama.pageNumber}
+                </Text>
+                <Text
+                  variant="bodyMedium"
+                  numberOfLines={3}
+                  style={[styles.preview, { color: theme.colors.onSurfaceVariant }]}
+                >
+                  {getPreviewText(hukamnama.lines, 120)}
+                </Text>
+              </Card.Content>
+              <Card.Actions>
+                <Button
+                  mode="contained"
+                  onPress={() => router.push("/hukamnama")}
+                  style={styles.readButton}
+                >
+                  Read Full
+                </Button>
+              </Card.Actions>
+            </>
+          ) : (
+            <Card.Content>
+              <Text variant="labelMedium" style={styles.cardLabel}>
+                TODAY&apos;S HUKAMNAMA
+              </Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.error }}>
+                Unable to load Hukamnama
+              </Text>
+            </Card.Content>
+          )}
         </Card>
 
         {/* Quick Actions */}
@@ -155,7 +177,9 @@ export default function HomeScreen() {
                 key={item.id}
                 title={item.title}
                 description={`${formatRelativeTime(item.timestamp)} • ${item.preview}`}
-                left={(props) => <List.Icon {...props} icon="book-open-variant" />}
+                left={(props) => (
+                  <List.Icon {...props} icon="book-open-variant" />
+                )}
                 right={(props) => <List.Icon {...props} icon="chevron-right" />}
                 onPress={() => router.push(`/ang/${item.angNumber}`)}
                 style={styles.historyItem}
@@ -183,7 +207,11 @@ export default function HomeScreen() {
             <Button onPress={hideDialog}>Cancel</Button>
             <Button
               onPress={handleGoToAng}
-              disabled={!angNumber || parseInt(angNumber) < 1 || parseInt(angNumber) > 1430}
+              disabled={
+                !angNumber ||
+                parseInt(angNumber) < 1 ||
+                parseInt(angNumber) > 1430
+              }
             >
               Go
             </Button>
@@ -213,6 +241,9 @@ const styles = StyleSheet.create({
   preview: {
     lineHeight: 20,
   },
+  loadingIndicator: {
+    marginVertical: 24,
+  },
   readButton: {
     marginRight: 8,
   },
@@ -227,13 +258,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   actionsGrid: {
-    flexDirection: "row",
+    flexDirection: "column",
     flexWrap: "wrap",
     gap: 8,
   },
   actionButton: {
     flex: 1,
-    minWidth: "47%",
+    minWidth: "100%",
   },
   actionButtonContent: {
     paddingVertical: 8,
@@ -250,4 +281,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
 });
-
