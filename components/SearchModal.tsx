@@ -125,10 +125,10 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
       >
         <Dialog.Title>Search Guru Granth Sahib</Dialog.Title>
 
-        <Dialog.Content style={styles.content}>
+        <Dialog.ScrollArea>
           <ScrollView
             showsVerticalScrollIndicator={true}
-            style={styles.scrollView}
+            contentContainerStyle={{ paddingHorizontal: 24 }}
           >
               {/* Search Input */}
               <View style={styles.searchContainer}>
@@ -396,7 +396,7 @@ export function SearchModal({ visible, onDismiss }: SearchModalProps) {
                 </>
               )}
             </ScrollView>
-        </Dialog.Content>
+        </Dialog.ScrollArea>
 
         <Dialog.Actions>
           <Button onPress={handleDismiss}>Close</Button>
@@ -410,21 +410,12 @@ const styles = StyleSheet.create({
   dialog: {
     maxHeight: "90%",
   },
-  content: {
-    paddingHorizontal: 0,
-    maxHeight: 600,
-  },
-  scrollView: {
-    flex: 1,
-  },
   searchContainer: {
-    paddingHorizontal: 24,
     paddingTop: 8,
   },
   filterRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 24,
     paddingVertical: 8,
     flexWrap: "wrap",
   },
@@ -436,7 +427,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   advancedButton: {
-    marginHorizontal: 24,
     marginVertical: 8,
   },
   advancedContainer: {
@@ -472,11 +462,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   resultsHeader: {
-    paddingHorizontal: 24,
     paddingVertical: 12,
   },
   loadMoreContainer: {
-    padding: 24,
+    paddingVertical: 24,
     alignItems: "center",
   },
 });
