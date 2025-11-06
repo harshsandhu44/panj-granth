@@ -4,9 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Panj Granth is a React Native mobile application built with Expo and TypeScript. The app uses Expo Router for file-based navigation and supports iOS, Android, and web platforms.
+Panj Granth is a React Native mobile application built with Expo and TypeScript for reading Guru Granth Sahib (Sikh scripture). The app uses Expo Router for file-based navigation and supports iOS, Android, and web platforms.
 
-**Current Status**: The app has been reset to a blank slate (commit 4b25846). All starter template code has been moved to `app-example/` for reference. The project is ready for fresh development while maintaining full Expo infrastructure.
+**Purpose**: Enable users to read and explore Guru Granth Sahib's 1,430 Angs (pages) with features like daily Hukamnama, quick navigation, and reading history.
+
+**Current Status**: MVP Home page implemented with Daily Hukamnama display, quick action buttons, and recent reading history. Using mock data for development.
 
 ## Development Commands
 
@@ -36,20 +38,21 @@ npm run reset-project       # Move starter code to app-example and create blank 
 ## Current Application Structure
 
 ### Routes
-Currently, the app has a minimal structure:
 - **Root layout** (`app/_layout.tsx`): Stack navigator wrapped with React Native Paper's PaperProvider for theming
-- **Home screen** (`app/index.tsx`): Placeholder screen with simple centered text
+- **Home screen** (`app/index.tsx`): Main screen with Daily Hukamnama card, quick actions, and recent reading history
+- **Ang screen** (`app/ang/[id].tsx`): Individual Ang reading screen with Gurmukhi text, transliteration, and translation
+- **Hukamnama screen** (`app/hukamnama.tsx`): Full daily Hukamnama display with metadata
+- **Bookmarks screen** (`app/bookmarks.tsx`): Saved bookmarks (currently showing empty state)
+
+### Data & Services
+- **Types** (`types/index.ts`): TypeScript interfaces for Ang, Shabad, Hukamnama, ReadingHistoryItem, and enums for Raag, Author, Section
+- **Mock Data Service** (`services/mock-data.ts`): Development mock data including:
+  - Sample Hukamnama with Gurmukhi text
+  - Reading history (4 recent items)
+  - Helper functions (formatRelativeTime, getRandomAngNumber, getMockAngData)
 
 ### Components
-The `components/` directory does not currently exist. Previous template components are available in `app-example/components/` for reference:
-- `themed-text.tsx`, `themed-view.tsx` - Theme-aware UI components
-- `haptic-tab.tsx` - Tab with haptic feedback
-- `parallax-scroll-view.tsx` - Scroll view with parallax effect
-- `external-link.tsx` - External navigation links
-- `ui/collapsible.tsx` - Collapsible component
-- `ui/icon-symbol.tsx` - Platform-specific icon components
-
-**Note**: Use React Native Paper components for UI development. See Theme System section below.
+No custom components directory yet. Currently using React Native Paper components throughout the app. Previous template components are available in `app-example/components/` for reference.
 
 ### Constants
 - **Theme** (`constants/theme.ts`): Material Design 3 theme configuration with light and dark mode support
@@ -165,3 +168,80 @@ function MyComponent() {
 - **Icons**: Use `@expo/vector-icons` or Paper's Icon component
 - **Typography**: Use Paper's Text component with MD3 variants (displayLarge, headlineMedium, bodySmall, etc.)
 - **Theming**: All Paper components automatically respect light/dark mode
+
+## Implemented Features
+
+### Home Page
+- **Daily Hukamnama Card**: Prominent display of today's Hukamnama with preview and "Read Full" action
+- **Quick Actions**:
+  - Continue Reading (navigates to last read Ang)
+  - Go to Ang (dialog with number input for direct navigation)
+  - Random Ang (opens random page 1-1430)
+  - Bookmarks (navigates to bookmarks screen)
+- **Recent Reading History**: List of last 4 read Angs with timestamps and previews
+- **Navigation**: All buttons and list items have working navigation
+
+### Reading Screens
+- **Ang Screen**: Display individual Ang with Gurmukhi, transliteration, and translation
+- **Hukamnama Screen**: Full Hukamnama display with metadata chips (date, Raag, author)
+- **Bookmarks Screen**: Empty state placeholder (ready for implementation)
+
+### Data Layer
+- **Type system**: Complete TypeScript interfaces for all data structures
+- **Mock data service**: Development data with realistic Gurmukhi text samples
+- **Helper functions**: Time formatting, random Ang generation, data accessors
+
+## Feature Roadmap
+
+### Phase 1: Core Reading Experience (Next)
+- [ ] Integrate real Guru Granth Sahib data (JSON or SQLite database)
+- [ ] Implement actual Hukamnama API integration (Golden Temple API)
+- [ ] Add font size adjustment controls
+- [ ] Implement bookmarking functionality
+- [ ] Add persistent reading history with AsyncStorage
+- [ ] Search functionality (basic text search)
+
+### Phase 2: Enhanced Reading
+- [ ] Browse by Raag screen
+- [ ] Browse by Section (Japji Sahib, Nitnem, etc.)
+- [ ] Larivaar mode (text without spaces)
+- [ ] Multiple translation options
+- [ ] Audio recitation integration
+- [ ] Text selection and sharing
+
+### Phase 3: User Personalization
+- [ ] Settings screen (font preferences, theme, notifications)
+- [ ] Bookmark folders/collections
+- [ ] Personal notes and annotations
+- [ ] Reading statistics and progress tracking
+- [ ] Custom theme colors
+
+### Phase 4: Advanced Features
+- [ ] Offline mode with downloadable content
+- [ ] Word-by-word meanings
+- [ ] Commentary and context (teeka)
+- [ ] Cross-references between Shabads
+- [ ] Cloud sync for bookmarks and progress
+- [ ] Calendar integration (Gurpurab dates)
+
+## Domain-Specific Considerations
+
+### Guru Granth Sahib Structure
+- **1,430 Angs (pages)**: "Ang" means "limb" - use this term consistently
+- **Organized by Raag**: 31 musical measures/moods
+- **Multiple authors**: 6 Sikh Gurus + 15 Bhagats (saints)
+- **Sections**: Japji Sahib, Anand Sahib, and Raag-based sections
+
+### Respectful Design
+- Clean, uncluttered interface that honors the sacred text
+- Avoid distracting animations or aggressive UI elements
+- Use calming color palette (consider traditional colors: gold, deep blue, white)
+- Ensure text is always the primary focus
+- Implement smooth, peaceful transitions
+
+### Gurmukhi Text Handling
+- Use proper Gurmukhi fonts (consider AnmolLipi, GurbaniAkhar)
+- Ensure adequate line height (1.5-1.8) for readability
+- Support larger text sizes for accessibility
+- Properly handle Gurmukhi Unicode characters
+- Consider Larivaar (no spaces) vs Padched (with spaces) display options
