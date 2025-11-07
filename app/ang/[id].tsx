@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Appbar, useTheme, Chip, Divider } from "react-native-paper";
 import { useAng } from "@/hooks/useAng";
+import { useReadingHistory } from "@/hooks/useReadingHistory";
 import { GurbaniLine } from "@/components/GurbaniLine";
 import { LoadingAng } from "@/components/LoadingAng";
 import { ErrorView } from "@/components/ErrorView";
@@ -14,6 +16,16 @@ export default function AngScreen() {
   const angNumber = parseInt(id || "1", 10);
 
   const { ang, loading, error, refetch } = useAng(angNumber);
+  const { addToHistory } = useReadingHistory();
+
+  // Track reading history when Ang is successfully loaded
+  useEffect(() => {
+    if (ang && !loading && !error) {
+      addToHistory(ang).catch((err) => {
+        console.error("Failed to save reading history:", err);
+      });
+    }
+  }, [ang, loading, error, addToHistory]);
 
   if (loading) {
     return (
@@ -50,7 +62,7 @@ export default function AngScreen() {
         <Appbar.Content title={`Ang ${angNumber}`} />
         <TranslationToggle />
         <Appbar.Action icon="bookmark-outline" onPress={() => {}} />
-        <Appbar.Action icon="share-variant" onPress={() => {}} />
+        {/*<Appbar.Action icon="share-variant" onPress={() => {}} />*/}
       </Appbar.Header>
 
       <ScrollView

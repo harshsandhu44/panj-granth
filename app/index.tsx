@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, ScrollView, StyleSheet } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import {
   Text,
   Card,
@@ -15,22 +15,26 @@ import {
   Divider,
   ActivityIndicator,
 } from "react-native-paper";
-import {
-  getMockReadingHistory,
-  formatRelativeTime,
-  getRandomAngNumber,
-} from "@/services/mock-data";
+import { formatRelativeTime, getRandomAngNumber } from "@/services/mock-data";
 import { useHukamnama } from "@/hooks/useHukamnama";
+import { useReadingHistory } from "@/hooks/useReadingHistory";
 import { getPreviewText } from "@/services/transformers";
 
 export default function HomeScreen() {
   const router = useRouter();
   const theme = useTheme();
   const { hukamnama, loading: hukamnamaLoading } = useHukamnama();
-  const readingHistory = getMockReadingHistory();
+  const { history: readingHistory, latestAng, refresh } = useReadingHistory();
 
   const [dialogVisible, setDialogVisible] = useState(false);
   const [angNumber, setAngNumber] = useState("");
+
+  // Refresh reading history when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   const showDialog = () => setDialogVisible(true);
   const hideDialog = () => {
@@ -47,9 +51,9 @@ export default function HomeScreen() {
   };
 
   const handleContinueReading = () => {
-    if (readingHistory.length > 0) {
-      router.push(`/ang/${readingHistory[0].angNumber}`);
-    }
+    // Navigate to latest Ang if history exists, otherwise start at Ang 1
+    const targetAng = latestAng || 1;
+    router.push(`/ang/${targetAng}`);
   };
 
   const handleRandomAng = () => {
@@ -129,12 +133,12 @@ export default function HomeScreen() {
           <View style={styles.actionsGrid}>
             <Button
               mode="contained-tonal"
-              icon="book-open-page-variant"
+              icon={latestAng ? "book-open-page-variant" : "book-open"}
               onPress={handleContinueReading}
               style={styles.actionButton}
               contentStyle={styles.actionButtonContent}
             >
-              Continue
+              {latestAng ? "Continue" : "Start"}
             </Button>
             <Button
               mode="contained-tonal"
@@ -173,21 +177,42 @@ export default function HomeScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Recent Reading
           </Text>
-          <List.Section>
-            {readingHistory.map((item) => (
-              <List.Item
-                key={item.id}
-                title={item.title}
-                description={`${formatRelativeTime(item.timestamp)} • ${item.preview}`}
-                left={(props) => (
-                  <List.Icon {...props} icon="book-open-variant" />
-                )}
-                right={(props) => <List.Icon {...props} icon="chevron-right" />}
-                onPress={() => router.push(`/ang/${item.angNumber}`)}
-                style={styles.historyItem}
-              />
-            ))}
-          </List.Section>
+          {readingHistory.length > 0 ? (
+            <List.Section>
+              {readingHistory.map((item) => (
+                <List.Item
+                  key={item.id}
+                  title={item.title}
+                  description={`${formatRelativeTime(item.timestamp)} • ${item.preview}`}
+                  left={(props) => (
+                    <List.Icon {...props} icon="book-open-variant" />
+                  )}
+                  right={(props) => <List.Icon {...props} icon="chevron-right" />}
+                  onPress={() => router.push(`/ang/${item.angNumber}`)}
+                  style={styles.historyItem}
+                />
+              ))}
+            </List.Section>
+          ) : (
+            <View style={styles.emptyState}>
+              <List.Icon icon="book-outline" />
+              <Text
+                variant="bodyLarge"
+                style={[styles.emptyTitle, { color: theme.colors.onSurface }]}
+              >
+                No reading history yet
+              </Text>
+              <Text
+                variant="bodyMedium"
+                style={[
+                  styles.emptySubtext,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                Start reading to see your recently viewed Angs here
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -283,5 +308,19 @@ const styles = StyleSheet.create({
   },
   historyItem: {
     paddingHorizontal: 0,
+  },
+  emptyState: {
+    paddingVertical: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyTitle: {
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  emptySubtext: {
+    textAlign: "center",
+    paddingHorizontal: 32,
   },
 });
