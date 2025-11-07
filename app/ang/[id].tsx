@@ -1,13 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Appbar, useTheme, Chip, Divider } from "react-native-paper";
+import {
+  Appbar,
+  useTheme,
+  Chip,
+  Divider,
+  Snackbar,
+  Portal,
+} from "react-native-paper";
 import { useAng } from "@/hooks/useAng";
 import { useReadingHistory } from "@/hooks/useReadingHistory";
+import { useBookmarks } from "@/hooks/useBookmarks";
 import { GurbaniLine } from "@/components/GurbaniLine";
 import { LoadingAng } from "@/components/LoadingAng";
 import { ErrorView } from "@/components/ErrorView";
 import { TranslationToggle } from "@/components/TranslationToggle";
+import { BookmarkNoteDialog } from "@/components/BookmarkNoteDialog";
 
 export default function AngScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,6 +26,22 @@ export default function AngScreen() {
 
   const { ang, loading, error, refetch } = useAng(angNumber);
   const { addToHistory } = useReadingHistory();
+  const {
+    isBookmarked,
+    getBookmark,
+    addBookmark,
+    removeBookmark,
+    updateNote,
+  } = useBookmarks();
+
+  // Bookmark state
+  const bookmarked = isBookmarked(angNumber);
+  const existingBookmark = getBookmark(angNumber);
+
+  // Dialog and Snackbar state
+  const [noteDialogVisible, setNoteDialogVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   // Track reading history when Ang is successfully loaded
   useEffect(() => {
@@ -26,6 +51,47 @@ export default function AngScreen() {
       });
     }
   }, [ang, loading, error, addToHistory]);
+
+  // Bookmark handlers
+  const handleBookmarkPress = () => {
+    if (bookmarked) {
+      // Already bookmarked: Show edit dialog
+      setNoteDialogVisible(true);
+    } else if (ang) {
+      // Not bookmarked: Show dialog to add note
+      setNoteDialogVisible(true);
+    }
+  };
+
+  const handleNoteSave = async (note: string) => {
+    try {
+      if (bookmarked) {
+        // Update existing bookmark note
+        await updateNote(angNumber, note);
+        setSnackbarMessage("Bookmark updated");
+      } else if (ang) {
+        // Add new bookmark with note
+        await addBookmark(ang, note);
+        setSnackbarMessage("Bookmark added");
+      }
+      setNoteDialogVisible(false);
+      setSnackbarVisible(true);
+    } catch (error) {
+      console.error("Failed to save bookmark:", error);
+      setSnackbarMessage("Failed to save bookmark");
+      setSnackbarVisible(true);
+    }
+  };
+
+  const handleQuickRemove = async () => {
+    try {
+      await removeBookmark(angNumber);
+      setSnackbarMessage("Bookmark removed");
+      setSnackbarVisible(true);
+    } catch (error) {
+      console.error("Failed to remove bookmark:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -61,8 +127,13 @@ export default function AngScreen() {
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={`Ang ${angNumber}`} />
         <TranslationToggle />
-        <Appbar.Action icon="bookmark-outline" onPress={() => {}} />
-        {/*<Appbar.Action icon="share-variant" onPress={() => {}} />*/}
+        <Appbar.Action
+          icon={bookmarked ? "bookmark" : "bookmark-outline"}
+          onPress={handleBookmarkPress}
+        />
+        {bookmarked && (
+          <Appbar.Action icon="bookmark-remove" onPress={handleQuickRemove} />
+        )}
       </Appbar.Header>
 
       <ScrollView
@@ -89,6 +160,26 @@ export default function AngScreen() {
           <GurbaniLine key={line.id || index} line={line} />
         ))}
       </ScrollView>
+
+      {/* Bookmark Note Dialog */}
+      <BookmarkNoteDialog
+        visible={noteDialogVisible}
+        onDismiss={() => setNoteDialogVisible(false)}
+        onSave={handleNoteSave}
+        initialNote={existingBookmark?.note}
+        angNumber={angNumber}
+      />
+
+      {/* Snackbar for confirmations */}
+      <Portal>
+        <Snackbar
+          visible={snackbarVisible}
+          onDismiss={() => setSnackbarVisible(false)}
+          duration={2000}
+        >
+          {snackbarMessage}
+        </Snackbar>
+      </Portal>
     </View>
   );
 }

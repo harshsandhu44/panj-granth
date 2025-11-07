@@ -56,12 +56,20 @@ export interface ReadingHistoryItem {
  * Bookmark entry
  */
 export interface Bookmark {
-  id: string;
-  angNumber: number;
-  title: string;
-  note?: string;
-  createdAt: number;
+  id: string;                    // Unique ID: `ang-${angNumber}-${timestamp}`
+  angNumber: number;             // Ang number (1-1430)
+  timestamp: number;             // Unix timestamp when bookmarked
+  title: string;                 // Display title (e.g., "Ang 123 - Guru Arjan Dev Ji - Raag Asa")
+  preview?: string;              // First line preview text
+  note?: string;                 // User note/annotation
+  raag?: string;                 // Raag metadata
+  writer?: string;               // Writer metadata
 }
+
+/**
+ * Bookmark sort options
+ */
+export type BookmarkSortOption = 'date' | 'angNumber' | 'raag' | 'writer';
 
 /**
  * Musical measures (Raags) in Guru Granth Sahib
