@@ -61,8 +61,7 @@ export default function HomeScreen() {
     <View style={{ flex: 1 }}>
       <Appbar.Header>
         <Appbar.Content title="Panj Granth" />
-        <Appbar.Action icon="magnify" onPress={() => router.push("/search")} />
-        <Appbar.Action icon="cog-outline" onPress={() => {}} />
+        {/*<Appbar.Action icon="magnify" onPress={() => router.push("/search")} />*/}
       </Appbar.Header>
 
       <ScrollView

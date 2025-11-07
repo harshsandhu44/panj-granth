@@ -16,6 +16,8 @@ import {
   Menu,
   Divider,
   Appbar,
+  Banner,
+  Icon,
 } from "react-native-paper";
 import { useSearch } from "@/hooks/useSearch";
 import { SearchResult } from "@/components/SearchResult";
@@ -109,6 +111,21 @@ export default function SearchScreen() {
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
         <View style={styles.content}>
+          {/* API Unavailable Banner */}
+          <Banner
+            visible={true}
+            icon="alert-circle-outline"
+            style={[styles.banner, { backgroundColor: theme.colors.errorContainer }]}
+          >
+            <Text
+              variant="bodyMedium"
+              style={{ color: theme.colors.onErrorContainer }}
+            >
+              Search is temporarily unavailable due to API limitations. The search
+              feature will be enabled once the Gurbani Now API is restored.
+            </Text>
+          </Banner>
+
           {/* Search Input */}
           <View style={styles.searchContainer}>
             <TextInput
@@ -336,7 +353,17 @@ export default function SearchScreen() {
           {!query && !loading && (
             <View style={styles.centerContainer}>
               <Text variant="bodyMedium" style={styles.emptyText}>
-                Enter a search query to begin
+                Search functionality is currently unavailable
+              </Text>
+              <Text
+                variant="bodySmall"
+                style={[
+                  styles.emptySubtext,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                The Gurbani Now API search endpoint is not responding. Please check
+                back later.
               </Text>
             </View>
           )}
@@ -383,6 +410,10 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+  },
+  banner: {
+    marginBottom: 16,
+    borderRadius: 8,
   },
   searchContainer: {
     marginBottom: 12,
@@ -434,6 +465,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: "center",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    textAlign: "center",
+    paddingHorizontal: 16,
   },
   resultsHeader: {
     marginVertical: 12,
