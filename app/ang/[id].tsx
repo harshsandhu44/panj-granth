@@ -97,13 +97,13 @@ export default function AngScreen() {
   // Navigation handlers
   const handlePreviousAng = () => {
     if (angNumber > 1) {
-      router.push(`/ang/${angNumber - 1}`);
+      router.replace(`/ang/${angNumber - 1}`);
     }
   };
 
   const handleNextAng = () => {
     if (angNumber < 1430) {
-      router.push(`/ang/${angNumber + 1}`);
+      router.replace(`/ang/${angNumber + 1}`);
     }
   };
 
