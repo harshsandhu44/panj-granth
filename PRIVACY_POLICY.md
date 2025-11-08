@@ -52,12 +52,12 @@ We may update this privacy policy from time to time. Any changes will be posted 
 
 If you have any questions about this privacy policy, please contact:
 - Email: harsh.sandhu95@gmail.com
-- GitHub: https://github.com/harshsandhu95/panj-granth
+- GitHub: https://github.com/harshsandhu44/panj-granth
 
 ## Open Source
 
 Panj Granth is open source. You can review the code to verify our privacy claims:
-https://github.com/harshsandhu95/panj-granth
+https://github.com/harshsandhu44/panj-granth
 
 ---
 
