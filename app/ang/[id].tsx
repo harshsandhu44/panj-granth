@@ -8,6 +8,7 @@ import {
   Divider,
   Snackbar,
   Portal,
+  Button,
 } from "react-native-paper";
 import { useAng } from "@/hooks/useAng";
 import { useReadingHistory } from "@/hooks/useReadingHistory";
@@ -93,6 +94,19 @@ export default function AngScreen() {
     }
   };
 
+  // Navigation handlers
+  const handlePreviousAng = () => {
+    if (angNumber > 1) {
+      router.push(`/ang/${angNumber - 1}`);
+    }
+  };
+
+  const handleNextAng = () => {
+    if (angNumber < 1430) {
+      router.push(`/ang/${angNumber + 1}`);
+    }
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1 }}>
@@ -159,6 +173,30 @@ export default function AngScreen() {
         {ang.lines.map((line, index) => (
           <GurbaniLine key={line.id || index} line={line} />
         ))}
+
+        {/* Navigation Buttons */}
+        <View style={styles.navigationContainer}>
+          <Button
+            mode="contained-tonal"
+            icon="chevron-left"
+            onPress={handlePreviousAng}
+            disabled={angNumber === 1}
+            style={styles.navButton}
+            contentStyle={styles.navButtonContent}
+          >
+            Previous Ang
+          </Button>
+          <Button
+            mode="contained-tonal"
+            icon="chevron-right"
+            contentStyle={[styles.navButtonContent, styles.navButtonContentRight]}
+            onPress={handleNextAng}
+            disabled={angNumber === 1430}
+            style={styles.navButton}
+          >
+            Next Ang
+          </Button>
+        </View>
       </ScrollView>
 
       {/* Bookmark Note Dialog */}
@@ -192,5 +230,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
+  },
+  navigationContainer: {
+    flexDirection: "row",
+    gap: 12,
+    padding: 16,
+    paddingTop: 24,
+    paddingBottom: 32,
+  },
+  navButton: {
+    flex: 1,
+  },
+  navButtonContent: {
+    paddingVertical: 8,
+  },
+  navButtonContentRight: {
+    flexDirection: "row-reverse",
   },
 });
